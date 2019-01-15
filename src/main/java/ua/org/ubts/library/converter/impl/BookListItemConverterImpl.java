@@ -30,6 +30,9 @@ public class BookListItemConverterImpl implements BookListItemConverter {
         if (coverExtension != null) {
             bookListItemDto.setCover(bookFileService.getCoverFilename() + coverExtension.getName());
         }
+        if (entity.getDocumentExtension() != null) {
+            bookListItemDto.setAvailableOnline(true);
+        }
         return bookListItemDto;
     }
 

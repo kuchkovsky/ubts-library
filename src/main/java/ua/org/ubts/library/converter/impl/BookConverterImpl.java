@@ -25,9 +25,8 @@ public class BookConverterImpl implements BookConverter {
     @Override
     public BookDto convertToDto(BookEntity entity) {
         BookDto bookDto = modelMapper.map(entity, BookDto.class);
-        if (entity.getCoverExtension() != null) {
-            bookDto.setCoverFile(bookFileService.getCoverDataUrl(entity));
-        }
+        bookDto.setCoverFile(bookFileService.getCoverDataUrl(entity));
+        bookDto.setDocument(bookFileService.getDocumentFilename(entity));
         return bookDto;
     }
 

@@ -29,4 +29,8 @@ public class BookDto extends BaseDto {
 
     private String coverFile;
 
+    private String uploadedDocument;
+
+    private String document;
+
 }

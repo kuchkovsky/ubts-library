@@ -3,6 +3,8 @@ package ua.org.ubts.library.service.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ua.org.ubts.library.converter.BookConverter;
+import ua.org.ubts.library.dto.BookDto;
 import ua.org.ubts.library.entity.BookEntity;
 import ua.org.ubts.library.entity.TagEntity;
 import ua.org.ubts.library.exception.BookNotFoundException;
@@ -32,6 +34,9 @@ public class BookServiceImpl implements BookService {
 
     @Autowired
     private BookFileService bookFileService;
+
+    @Autowired
+    private BookConverter bookConverter;
 
     private static Predicate<BookEntity> checkPermission(Principal principal) {
         return bookEntity -> principal != null || bookEntity.isAvailableOffline();
@@ -72,33 +77,56 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public void createBook(BookEntity bookEntity, String coverFileBase64) {
+    public void createBook(BookDto bookDto) {
+        BookEntity bookEntity = bookConverter.convertToEntity(bookDto);
         setTagsFromDb(bookEntity);
         bookEntity.setId(null);
         Long bookId = bookRepository.saveAndFlush(bookEntity).getId();
+        String coverFileBase64 = bookDto.getCoverFile();
         if (StringUtils.isNotEmpty(coverFileBase64)) {
             bookFileService.saveCover(bookId, coverFileBase64);
+        }
+        String uploadedDocument = bookDto.getUploadedDocument();
+        if (StringUtils.isNotEmpty(uploadedDocument)) {
+            bookFileService.saveDocument(bookId, uploadedDocument);
         }
     }
 
     @Override
-    public void editBook(BookEntity bookEntity, String coverFileBase64) {
+    public void editBook(BookDto bookDto) {
+        BookEntity bookEntity = bookConverter.convertToEntity(bookDto);
         BookEntity bookEntityFromDb = getBook(bookEntity.getId());
         setTagsFromDb(bookEntity);
         bookEntity.setCoverExtension(bookEntityFromDb.getCoverExtension());
-        bookEntity.setFileExtension(bookEntityFromDb.getFileExtension());
+        bookEntity.setDocumentExtension(bookEntityFromDb.getDocumentExtension());
         bookRepository.save(bookEntity);
+        String coverFileBase64 = bookDto.getCoverFile();
         if (StringUtils.isNotEmpty(coverFileBase64)) {
             bookFileService.saveCover(bookEntity.getId(), coverFileBase64);
         } else {
             bookFileService.deleteCover(bookEntity.getId());
         }
+        String uploadedDocument = bookDto.getUploadedDocument();
+        if (StringUtils.isNotEmpty(uploadedDocument)) {
+            bookFileService.saveDocument(bookEntity.getId(), uploadedDocument);
+            return;
+        }
+        String document = bookDto.getDocument();
+        if (StringUtils.isEmpty(document) && bookEntityFromDb.getDocumentExtension() != null) {
+            bookFileService.deleteDocument(bookEntity.getId());
+        }
     }
 
     @Override
     public void deleteBook(Long id) {
-        bookRepository.findById(id)
+        BookEntity bookEntity = bookRepository.findById(id)
                 .orElseThrow(supplyBookNotFoundException(id));
+        if (bookEntity.getCoverExtension() != null) {
+            bookFileService.deleteCover(id);
+        }
+        if (bookEntity.getDocumentExtension() != null) {
+            bookFileService.deleteDocument(id);
+        }
         bookRepository.deleteById(id);
     }
 

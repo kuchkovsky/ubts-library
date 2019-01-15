@@ -15,8 +15,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/books")
-public class BookApiController {
+@RequestMapping("/books")
+public class BookController {
 
     @Autowired
     private BookService bookService;
@@ -32,7 +32,7 @@ public class BookApiController {
         List<BookListItemDto> books = bookListItemConverter.convertToDto(bookService.getBooks(principal));
         return books.stream().peek(book -> {
             if (principal == null) {
-                book.setAvailableOffline(null);
+                book.setAvailableOnline(null);
             }
         }).collect(Collectors.toList());
     }
@@ -41,13 +41,13 @@ public class BookApiController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public void createBook(@RequestBody BookDto bookDto) {
-        bookService.createBook(bookConverter.convertToEntity(bookDto), bookDto.getCoverFile());
+        bookService.createBook(bookDto);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping
     public void editBook(@RequestBody BookDto bookDto) {
-        bookService.editBook(bookConverter.convertToEntity(bookDto), bookDto.getCoverFile());
+        bookService.editBook(bookDto);
     }
 
     @GetMapping("/{id}")

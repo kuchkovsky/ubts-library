@@ -1,5 +1,6 @@
 package ua.org.ubts.library.config;
 
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.http.HttpMethod;
 import ua.org.ubts.library.filter.JwtAuthenticationFilter;
 import ua.org.ubts.library.filter.JwtAuthorizationFilter;
@@ -17,6 +18,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.context.annotation.Bean;
+import ua.org.ubts.library.filter.SecuredFileDownloadFilter;
+import ua.org.ubts.library.service.SecuredFileTokenService;
 
 import javax.crypto.SecretKey;
 import java.util.Arrays;
@@ -30,6 +33,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private UserDetailsService userDetailsService;
 
     @Autowired
+    private SecuredFileTokenService securedFileTokenService;
+
+    @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
@@ -39,13 +45,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/api/books/**", "/api/files/books/**").permitAll()
-                .antMatchers("/api/**").authenticated()
+                .antMatchers(HttpMethod.GET, "/books/**", "/files/books/**").permitAll()
+                .antMatchers("/**").authenticated()
                 .anyRequest().permitAll()
                 .and()
                 .addFilter(new JwtAuthenticationFilter(authenticationManager(), secretKey))
                 .addFilter(new JwtAuthorizationFilter(authenticationManager(), secretKey, userDetailsService))
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    }
+
+    @Bean
+    public FilterRegistrationBean securedFileDownloadFilterRegistration() {
+        FilterRegistrationBean registration = new FilterRegistrationBean();
+        registration.setFilter(new SecuredFileDownloadFilter(securedFileTokenService));
+        registration.addUrlPatterns("/files/books/*");
+        return registration;
     }
 
     @Override

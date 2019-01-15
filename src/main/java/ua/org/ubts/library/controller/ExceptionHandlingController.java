@@ -8,7 +8,7 @@ import ua.org.ubts.library.exception.*;
 import ua.org.ubts.library.dto.MessageDto;
 
 @RestControllerAdvice
-public class ApiExceptionHandlingController {
+public class ExceptionHandlingController {
 
     @ExceptionHandler(ServiceException.class)
     public ResponseEntity<MessageDto> handleExceptions(ServiceException e) {

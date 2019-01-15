@@ -48,8 +48,8 @@ public class BookEntity extends BaseEntity<Long> {
     private FileExtensionEntity coverExtension;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "file_ext_id")
-    private FileExtensionEntity fileExtension;
+    @JoinColumn(name = "document_ext_id")
+    private FileExtensionEntity documentExtension;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinTable(

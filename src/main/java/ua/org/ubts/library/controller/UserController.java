@@ -11,8 +11,8 @@ import ua.org.ubts.library.service.UserService;
 import java.security.Principal;
 
 @RestController
-@RequestMapping("/api/users")
-public class UserApiController {
+@RequestMapping("/users")
+public class UserController {
 
     @Autowired
     private UserService userService;

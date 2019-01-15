@@ -17,6 +17,8 @@ public class BookListItemDto extends BaseDto {
 
     private Boolean availableOffline;
 
+    private Boolean availableOnline;
+
     private List<TagDto> tags;
 
     private String cover;
