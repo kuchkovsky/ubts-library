@@ -28,7 +28,7 @@ public class BookListItemConverterImpl implements BookListItemConverter {
         BookListItemDto bookListItemDto = modelMapper.map(entity, BookListItemDto.class);
         FileExtensionEntity coverExtension = entity.getCoverExtension();
         if (coverExtension != null) {
-            bookListItemDto.setCover(bookFileService.getCoverFilename() + coverExtension.getName());
+            bookListItemDto.setCover(bookFileService.getMinimizedCoverFilename() + coverExtension.getName());
         }
         if (entity.getDocumentExtension() != null) {
             bookListItemDto.setAvailableOnline(true);

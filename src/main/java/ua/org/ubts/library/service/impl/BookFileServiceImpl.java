@@ -27,8 +27,11 @@ import ua.org.ubts.library.repository.FileExtensionRepository;
 import ua.org.ubts.library.service.BookFileService;
 import ua.org.ubts.library.service.BookService;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -44,13 +47,17 @@ public class BookFileServiceImpl implements BookFileService {
 
     private static final String BOOKS_DIRECTORY = "books";
     private static final String COVER_FILENAME = "cover";
+    private static final String MINIMIZED_COVER_FILENAME = "cover_min";
     private static final String DOCUMENT_FILENAME = "document";
+
+    private static final int COVER_WIDTH = 600;
+    private static final int MINIMIZED_COVER_WIDTH = 300;
 
     private static final String WRITE_FILE_ERROR_MESSAGE = "Could not save file on server";
     private static final String READ_FILE_ERROR_MESSAGE = "Could not read requested file";
     private static final String BOOK_COVER_DELETE_ERROR_MESSAGE = "Could not delete cover for book with id=";
     private static final String TEMPORARY_DOCUMENT_DELETE_ERROR_MESSAGE = "Could not delete temporary document ";
-    private static final String DELETE_REQUEST_DESERIALIZTION_ERROR = "Could not deserialize delete request";
+    private static final String DELETE_REQUEST_DESERIALIZATION_ERROR = "Could not deserialize delete request";
     private static final String DOCUMENT_SAVE_ERROR =  "Could not save document for book with id=";
     private static final String DOCUMENT_DELETE_ERROR =  "Could not delete document for book with id=";
 
@@ -134,9 +141,27 @@ public class BookFileServiceImpl implements BookFileService {
                     .contentType(MediaType.parseMediaType(mimeType)).contentLength(Files.size(path))
                     .body(new FileSystemResource(path));
         } catch (IOException e) {
-            log.error(READ_FILE_ERROR_MESSAGE, e);
             throw new FileReadException(READ_FILE_ERROR_MESSAGE);
         }
+    }
+
+    private byte[] resizeImageToWidth(byte[] imageBytes, int width) throws IOException {
+        ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
+        BufferedImage bufferedImage = ImageIO.read(bis);
+        bis.close();
+        int resizedImageHeight = (int) (bufferedImage.getHeight() / ((double) bufferedImage.getWidth() / width));
+        Image resizedImage = bufferedImage.getScaledInstance(width, resizedImageHeight, Image.SCALE_SMOOTH);
+        BufferedImage resizedBufferedImage = new BufferedImage(width, resizedImageHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = resizedBufferedImage.createGraphics();
+        g2d.drawImage(resizedImage, 0, 0, null);
+        g2d.dispose();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        String imageType = getFileExtensionFromMimeType(getMimeTypeFromBytes(imageBytes)).substring(1);
+        ImageIO.write(resizedBufferedImage, imageType, baos);
+        baos.flush();
+        byte[] resizedImageBytes = baos.toByteArray();
+        baos.close();
+        return resizedImageBytes;
     }
 
     @Override
@@ -146,7 +171,10 @@ public class BookFileServiceImpl implements BookFileService {
             Files.createDirectories(Paths.get(getBookDirectory(bookId)));
             String mimeType = getMimeTypeFromBytes(cover);
             String extension = getFileExtensionFromMimeType(mimeType);
-            Files.write(getPath(bookId, COVER_FILENAME, extension), cover);
+            byte[] resizedCover = resizeImageToWidth(cover, COVER_WIDTH);
+            byte[] minimizedResizedCover = resizeImageToWidth(cover, MINIMIZED_COVER_WIDTH);
+            Files.write(getPath(bookId, COVER_FILENAME, extension), resizedCover);
+            Files.write(getPath(bookId, MINIMIZED_COVER_FILENAME, extension), minimizedResizedCover);
             BookEntity bookEntity = bookService.getBook(bookId);
             FileExtensionEntity fileExtensionEntity = getFileExtensionEntity(extension, mimeType);
             bookEntity.setCoverExtension(fileExtensionEntity);
@@ -164,7 +192,6 @@ public class BookFileServiceImpl implements BookFileService {
             byte[] bytes = Files.readAllBytes(getPath(bookEntity.getId(), COVER_FILENAME, extension));
             return Base64.getEncoder().encodeToString(bytes);
         } catch (IOException e) {
-            log.error(READ_FILE_ERROR_MESSAGE, e);
             throw new FileReadException(READ_FILE_ERROR_MESSAGE);
         }
     }
@@ -180,6 +207,11 @@ public class BookFileServiceImpl implements BookFileService {
     @Override
     public String getCoverFilename() {
         return COVER_FILENAME;
+    }
+
+    @Override
+    public String getMinimizedCoverFilename() {
+        return MINIMIZED_COVER_FILENAME;
     }
 
     @Override
@@ -204,6 +236,7 @@ public class BookFileServiceImpl implements BookFileService {
         if (fileExtensionEntity != null) {
             try {
                 Files.delete(getPath(bookId, COVER_FILENAME, fileExtensionEntity.getName()));
+                Files.delete(getPath(bookId, MINIMIZED_COVER_FILENAME, fileExtensionEntity.getName()));
             } catch (IOException e) {
                 log.error(BOOK_COVER_DELETE_ERROR_MESSAGE + bookId, e);
                 throw new FileDeleteException(BOOK_COVER_DELETE_ERROR_MESSAGE + bookId);
@@ -233,8 +266,8 @@ public class BookFileServiceImpl implements BookFileService {
         try {
             document = mapper.readValue(request.getInputStream(), UploadedFileDto.class);
         } catch (IOException e) {
-            log.error(DELETE_REQUEST_DESERIALIZTION_ERROR);
-            throw new ServiceException(DELETE_REQUEST_DESERIALIZTION_ERROR);
+            log.error(DELETE_REQUEST_DESERIALIZATION_ERROR);
+            throw new ServiceException(DELETE_REQUEST_DESERIALIZATION_ERROR);
         }
         String fileName = document.getFileName();
         try {

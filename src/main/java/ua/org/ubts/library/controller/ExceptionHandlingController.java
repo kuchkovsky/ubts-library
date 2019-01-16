@@ -13,7 +13,7 @@ public class ExceptionHandlingController {
     @ExceptionHandler(ServiceException.class)
     public ResponseEntity<MessageDto> handleExceptions(ServiceException e) {
         HttpStatus httpStatus;
-        if (e instanceof DatabaseItemNotFoundException) {
+        if (e instanceof DatabaseItemNotFoundException || e instanceof FileReadException) {
             httpStatus = HttpStatus.NOT_FOUND;
         } else if (e instanceof AccessViolationException) {
             httpStatus = HttpStatus.FORBIDDEN;

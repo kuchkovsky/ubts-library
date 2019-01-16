@@ -18,6 +18,8 @@ public interface BookFileService {
 
     String getCoverFilename();
 
+    String getMinimizedCoverFilename();
+
     String getDocumentFilename(BookEntity bookEntity);
 
     ResponseEntity<Resource> getCover(Long bookId, String coverName);
