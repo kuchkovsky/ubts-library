@@ -36,12 +36,24 @@ public class BookEntity extends BaseEntity<Long> {
     @Column(name = "pages", nullable = false)
     private Integer pages;
 
+    @Column(name = "classifier")
+    private Integer classifier;
+
     @NotEmpty
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "is_available_offline")
     private boolean availableOffline;
+
+    @Column(name = "number_of_copies")
+    private Integer numberOfCopies;
+
+    @Column(name = "price")
+    private Integer price;
+
+    @Column(name = "notes")
+    private String notes;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "cover_ext_id")

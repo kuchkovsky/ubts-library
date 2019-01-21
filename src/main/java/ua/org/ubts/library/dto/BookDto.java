@@ -25,6 +25,14 @@ public class BookDto extends BaseDto {
 
     private List<TagDto> tags;
 
+    private Integer numberOfCopies;
+
+    private Integer classifier;
+
+    private Integer price;
+
+    private String notes;
+
     private String coverFileName;
 
     private String coverFile;
