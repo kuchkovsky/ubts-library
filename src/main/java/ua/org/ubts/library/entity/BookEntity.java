@@ -37,7 +37,7 @@ public class BookEntity extends BaseEntity<Long> {
     private Integer pages;
 
     @Column(name = "classifier")
-    private Integer classifier;
+    private String classifier;
 
     @NotEmpty
     @Column(name = "description", columnDefinition = "TEXT")

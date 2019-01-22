@@ -27,7 +27,7 @@ public class BookDto extends BaseDto {
 
     private Integer numberOfCopies;
 
-    private Integer classifier;
+    private String classifier;
 
     private Integer price;
 

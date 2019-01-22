@@ -20,6 +20,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static ua.org.ubts.library.util.StreamsUtil.distinctByKey;
+
 @Service
 @Transactional
 public class BookServiceImpl implements BookService {
@@ -47,10 +49,11 @@ public class BookServiceImpl implements BookService {
     }
 
     private void setTagsFromDb(BookEntity bookEntity) {
-        if (bookEntity.getTags() !=  null) {
+        if (bookEntity.getTags() != null) {
             List<TagEntity> tags = bookEntity.getTags().stream()
                     .map(tagEntity -> tagRepository.findByName(tagEntity.getName())
                             .orElse(tagEntity))
+                    .filter(distinctByKey((tag -> tag.getName().toLowerCase())))
                     .collect(Collectors.toList());
             bookEntity.setTags(tags);
         }
