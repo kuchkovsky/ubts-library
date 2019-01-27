@@ -4,6 +4,7 @@ import org.springframework.security.core.Authentication;
 import ua.org.ubts.library.entity.UserEntity;
 
 import java.security.Principal;
+import java.util.List;
 
 public interface UserService {
 
@@ -14,6 +15,8 @@ public interface UserService {
     UserEntity getUser(Principal principal);
 
     UserEntity getUser(Authentication authentication);
+
+    List<UserEntity> getMoodleUsers();
 
     void createUser(UserEntity userEntity);
 

@@ -17,7 +17,9 @@ import ua.org.ubts.library.service.UserService;
 import javax.transaction.Transactional;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -67,6 +69,13 @@ public class UserServiceImpl implements UserService {
     public UserEntity getUser(Authentication authentication) {
         String login = ((String) authentication.getPrincipal());
         return getUser(login);
+    }
+
+    @Override
+    public List<UserEntity> getMoodleUsers() {
+        return userRepository.findAll().stream()
+                .filter(UserEntity::isMoodleUser)
+                .collect(Collectors.toList());
     }
 
     @Override

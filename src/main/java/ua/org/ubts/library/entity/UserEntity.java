@@ -32,6 +32,9 @@ public class UserEntity extends BaseEntity<Long> {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
+    @Column(name = "is_moodle_user")
+    private boolean moodleUser;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_role",

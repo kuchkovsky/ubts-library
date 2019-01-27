@@ -1,7 +1,9 @@
 package ua.org.ubts.library.config;
 
+import io.jsonwebtoken.impl.crypto.MacProvider;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.http.HttpMethod;
+import ua.org.ubts.library.providers.MoodleAwareAuthenticationProvider;
 import ua.org.ubts.library.filter.JwtAuthenticationFilter;
 import ua.org.ubts.library.filter.JwtAuthorizationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +38,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private SecuredFileTokenService securedFileTokenService;
 
     @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private MoodleAwareAuthenticationProvider authProvider;
 
-    @Autowired
-    private SecretKey secretKey;
+    @Bean
+    public BCryptPasswordEncoder bCryptPasswordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecretKey secretKey() {
+        return MacProvider.generateKey();
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -49,8 +58,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/**").authenticated()
                 .anyRequest().permitAll()
                 .and()
-                .addFilter(new JwtAuthenticationFilter(authenticationManager(), secretKey))
-                .addFilter(new JwtAuthorizationFilter(authenticationManager(), secretKey, userDetailsService))
+                .addFilter(new JwtAuthenticationFilter(authenticationManager(), secretKey()))
+                .addFilter(new JwtAuthorizationFilter(authenticationManager(), secretKey(), userDetailsService))
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
@@ -63,8 +72,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder);
+    public void configure(AuthenticationManagerBuilder auth) {
+        auth.authenticationProvider(authProvider);
     }
 
     @Bean

@@ -26,13 +26,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private UserRepository userRepository;
 
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
-        UserEntity user = userRepository.findByLogin(login)
+        UserEntity userEntity = userRepository.findByLogin(login)
                 .orElseThrow(() -> new UsernameNotFoundException(login));
         List<GrantedAuthority> authorities = new ArrayList<>();
-        for (RoleEntity roleEntity : user.getRoles()) {
+        for (RoleEntity roleEntity : userEntity.getRoles()) {
             authorities.add(new SimpleGrantedAuthority(roleEntity.getName()));
         }
-        return new User(user.getLogin(), user.getPassword(), authorities);
+        return new User(userEntity.getLogin(), userEntity.getPassword(), authorities);
     }
 
 }
