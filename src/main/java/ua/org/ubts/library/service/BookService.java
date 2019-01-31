@@ -1,5 +1,6 @@
 package ua.org.ubts.library.service;
 
+import org.springframework.security.core.Authentication;
 import ua.org.ubts.library.dto.BookDto;
 import ua.org.ubts.library.entity.BookEntity;
 
@@ -10,7 +11,7 @@ public interface BookService {
 
     BookEntity getBook(Long id);
 
-    BookEntity getBook(Long id, Principal principal);
+    BookEntity getBook(Long id, Authentication authentication);
 
     List<BookEntity> getBooks(Principal principal);
 

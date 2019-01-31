@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import ua.org.ubts.library.converter.BookConverter;
 import ua.org.ubts.library.dto.BookDto;
 import ua.org.ubts.library.entity.BookEntity;
+import ua.org.ubts.library.entity.FileExtensionEntity;
 import ua.org.ubts.library.service.BookFileService;
 
 @Component
@@ -26,6 +27,10 @@ public class BookConverterImpl implements BookConverter {
     public BookDto convertToDto(BookEntity entity) {
         BookDto bookDto = modelMapper.map(entity, BookDto.class);
         bookDto.setCoverFile(bookFileService.getCoverDataUrl(entity));
+        FileExtensionEntity coverExtension = entity.getCoverExtension();
+        if (coverExtension != null) {
+            bookDto.setCoverFileName(bookFileService.getMinimizedCoverFilename() + coverExtension.getName());
+        }
         bookDto.setDocument(bookFileService.getDocumentFilename(entity));
         return bookDto;
     }

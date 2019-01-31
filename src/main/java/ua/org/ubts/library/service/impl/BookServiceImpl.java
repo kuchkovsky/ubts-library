@@ -1,7 +1,9 @@
 package ua.org.ubts.library.service.impl;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import ua.org.ubts.library.converter.BookConverter;
 import ua.org.ubts.library.dto.BookDto;
@@ -15,11 +17,13 @@ import ua.org.ubts.library.service.BookService;
 
 import javax.transaction.Transactional;
 import java.security.Principal;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static ua.org.ubts.library.util.AuthUtil.isAdmin;
 import static ua.org.ubts.library.util.StreamsUtil.distinctByKey;
 
 @Service
@@ -44,6 +48,10 @@ public class BookServiceImpl implements BookService {
         return bookEntity -> principal != null || bookEntity.isAvailableOffline();
     }
 
+    private static Predicate<BookEntity> checkPermission(Authentication authentication) {
+        return bookEntity -> authentication != null || bookEntity.isAvailableOffline();
+    }
+
     private static Supplier<BookNotFoundException> supplyBookNotFoundException(Long id) {
         return () -> new BookNotFoundException(BOOK_NOT_FOUND_MESSAGE + id);
     }
@@ -66,17 +74,37 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookEntity getBook(Long id, Principal principal) {
+    public BookEntity getBook(Long id, Authentication authentication) {
         return bookRepository.findById(id)
-                .filter(checkPermission(principal))
+                .filter(checkPermission(authentication))
+                .map(bookEntity -> {
+                    BookEntity book = SerializationUtils.clone(bookEntity);
+                    if (authentication == null) {
+                        book.setDocumentExtension(null);
+                    }
+                    if (authentication == null || !isAdmin(authentication)) {
+                        book.setClassifier(null);
+                        book.setNotes(null);
+                    }
+                    return book;
+                })
                 .orElseThrow(supplyBookNotFoundException(id));
     }
 
     @Override
     public List<BookEntity> getBooks(Principal principal) {
-        return bookRepository.findAll().stream()
+        List<BookEntity> bookList = bookRepository.findAll().stream()
                 .filter(checkPermission(principal))
+                .map(bookEntity -> {
+                    BookEntity book = SerializationUtils.clone(bookEntity);
+                    if (principal == null) {
+                        book.setDocumentExtension(null);
+                    }
+                    return book;
+                })
                 .collect(Collectors.toList());
+        Collections.reverse(bookList);
+        return bookList;
     }
 
     @Override

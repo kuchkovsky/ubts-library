@@ -3,6 +3,7 @@ package ua.org.ubts.library.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import ua.org.ubts.library.converter.BookConverter;
 import ua.org.ubts.library.converter.BookListItemConverter;
@@ -12,7 +13,6 @@ import ua.org.ubts.library.service.BookService;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/books")
@@ -29,12 +29,7 @@ public class BookController {
 
     @GetMapping
     public List<BookListItemDto> getBooks(Principal principal) {
-        List<BookListItemDto> books = bookListItemConverter.convertToDto(bookService.getBooks(principal));
-        return books.stream().peek(book -> {
-            if (principal == null) {
-                book.setAvailableOnline(null);
-            }
-        }).collect(Collectors.toList());
+        return bookListItemConverter.convertToDto(bookService.getBooks(principal));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -51,8 +46,8 @@ public class BookController {
     }
 
     @GetMapping("/{id}")
-    public BookDto getBook(@PathVariable("id") Long id, Principal principal) {
-        return bookConverter.convertToDto(bookService.getBook(id, principal));
+    public BookDto getBook(@PathVariable("id") Long id, Authentication authentication) {
+        return bookConverter.convertToDto(bookService.getBook(id, authentication));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
