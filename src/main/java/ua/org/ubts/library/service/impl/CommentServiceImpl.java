@@ -66,8 +66,9 @@ public class CommentServiceImpl implements CommentService {
                 MimeMessage mimeMessage = emailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "utf-8");
                 String htmlMessage = "<b>" + userEntity.getLastName() + " " + userEntity.getFirstName() + "</b>"
-                        + " залишив новий коментар:<br><br>" + comment + "<br><br>"
-                         + "<a href=\"" + bookViewPath + "/" + bookEntity.getId() + "\">Переглянути коментар</a>";
+                        + " залишив новий коментар:"
+                        + "<br><br><span style=\"white-space: pre-line\">" + comment + "</span><br><br>"
+                        + "<a href=\"" + bookViewPath + "/" + bookEntity.getId() + "\">Переглянути коментар</a>";
                 mimeMessage.setContent(htmlMessage, "text/html; charset=UTF-8");
                 helper.setTo(adminEmail);
                 helper.setSubject("Новий коментар до книги \"" + bookEntity.getTitle() + "\"");

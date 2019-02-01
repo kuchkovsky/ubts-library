@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Entity
@@ -32,7 +33,7 @@ public class UserEntity extends BaseEntity<Long> {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @Column(name = "is_moodle_user")
+    @Column(name = "is_moodle_user", nullable = false, columnDefinition="TINYINT(1) DEFAULT 0")
     private boolean moodleUser;
 
     @ManyToMany(fetch = FetchType.EAGER)

@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 
 public interface BookFileService {
 
-    void saveCover(Long bookId, String coverFileBase64);
+    void saveCover(Long bookId, String dataUrl);
 
     String getCoverBase64(BookEntity bookEntity);
 

@@ -25,7 +25,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static ua.org.ubts.library.util.AuthUtil.isAdmin;
-import static ua.org.ubts.library.util.StreamsUtil.distinctByKey;
 
 @Service
 @Transactional
@@ -62,9 +61,9 @@ public class BookServiceImpl implements BookService {
             List<TagEntity> tags = bookEntity.getTags().stream()
                     .map(tagEntity -> tagRepository.findByName(tagEntity.getName())
                             .orElse(tagEntity))
-                    .filter(distinctByKey((tag -> tag.getName().toLowerCase())))
                     .collect(Collectors.toList());
             bookEntity.setTags(tags);
+            tagRepository.saveAll(tags);
         }
     }
 
@@ -116,9 +115,9 @@ public class BookServiceImpl implements BookService {
         setTagsFromDb(bookEntity);
         bookEntity.setId(null);
         Long bookId = bookRepository.saveAndFlush(bookEntity).getId();
-        String coverFileBase64 = bookDto.getCoverFile();
-        if (StringUtils.isNotEmpty(coverFileBase64)) {
-            bookFileService.saveCover(bookId, coverFileBase64);
+        String coverFileDataUrl = bookDto.getCoverFile();
+        if (StringUtils.isNotEmpty(coverFileDataUrl)) {
+            bookFileService.saveCover(bookId, coverFileDataUrl);
         }
         String uploadedDocument = bookDto.getUploadedDocument();
         if (StringUtils.isNotEmpty(uploadedDocument)) {
@@ -134,9 +133,9 @@ public class BookServiceImpl implements BookService {
         bookEntity.setCoverExtension(bookEntityFromDb.getCoverExtension());
         bookEntity.setDocumentExtension(bookEntityFromDb.getDocumentExtension());
         bookRepository.save(bookEntity);
-        String coverFileBase64 = bookDto.getCoverFile();
-        if (StringUtils.isNotEmpty(coverFileBase64)) {
-            bookFileService.saveCover(bookEntity.getId(), coverFileBase64);
+        String coverFileDataUrl = bookDto.getCoverFile();
+        if (StringUtils.isNotEmpty(coverFileDataUrl)) {
+            bookFileService.saveCover(bookEntity.getId(), coverFileDataUrl);
         } else {
             bookFileService.deleteCover(bookEntity.getId());
         }

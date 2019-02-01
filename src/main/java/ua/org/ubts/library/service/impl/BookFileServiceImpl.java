@@ -165,8 +165,8 @@ public class BookFileServiceImpl implements BookFileService {
     }
 
     @Override
-    public void saveCover(Long bookId, String coverFileBase64) {
-        byte[] cover = Base64.getDecoder().decode(coverFileBase64);
+    public void saveCover(Long bookId, String dataUrl) {
+        byte[] cover = Base64.getDecoder().decode(dataUrl.replaceAll("^data:(.*;base64,)?", ""));
         try {
             Files.createDirectories(Paths.get(getBookDirectory(bookId)));
             String mimeType = getMimeTypeFromBytes(cover);
