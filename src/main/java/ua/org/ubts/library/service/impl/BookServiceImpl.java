@@ -2,6 +2,7 @@ package ua.org.ubts.library.service.impl;
 
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -78,6 +79,7 @@ public class BookServiceImpl implements BookService {
         return bookRepository.findById(id)
                 .filter(checkPermission(authentication))
                 .map(bookEntity -> {
+                    Hibernate.initialize(bookEntity.getComments());
                     BookEntity book = SerializationUtils.clone(bookEntity);
                     if (authentication == null) {
                         book.setDocumentExtension(null);
@@ -86,6 +88,7 @@ public class BookServiceImpl implements BookService {
                         book.setClassifier(null);
                         book.setNotes(null);
                     }
+                    Collections.reverse(book.getComments());
                     return book;
                 })
                 .orElseThrow(supplyBookNotFoundException(id));

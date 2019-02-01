@@ -44,4 +44,7 @@ public class UserEntity extends BaseEntity<Long> {
                     name = "role_id", referencedColumnName = "id"))
     private List<RoleEntity> roles;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<CommentEntity> comments;
+
 }

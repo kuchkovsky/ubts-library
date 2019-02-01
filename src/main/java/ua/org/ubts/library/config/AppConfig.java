@@ -7,8 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import ua.org.ubts.library.service.SynchronizationService;
 
 import javax.annotation.PostConstruct;
@@ -57,6 +60,17 @@ public class AppConfig {
     @EventListener(ApplicationReadyEvent.class) // run immediately after application start
     public void synchronizeMoodleUsers() {
         synchronizationService.synchronizeMoodleUsers();
+    }
+
+    @Bean
+    @Primary
+    public TaskExecutor threadPoolTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(4);
+        executor.setThreadNamePrefix("default_task_executor_thread");
+        executor.initialize();
+        return executor;
     }
 
 }

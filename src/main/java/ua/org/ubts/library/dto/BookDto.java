@@ -41,4 +41,6 @@ public class BookDto extends BaseDto {
 
     private String document;
 
+    private List<CommentDto> comments;
+
 }

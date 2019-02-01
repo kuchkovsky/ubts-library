@@ -72,4 +72,7 @@ public class BookEntity extends BaseEntity<Long> {
                     name = "book_id", referencedColumnName = "id"))
     private List<TagEntity> tags;
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book", cascade = CascadeType.ALL)
+    private List<CommentEntity> comments;
+
 }
