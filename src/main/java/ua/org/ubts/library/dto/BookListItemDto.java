@@ -15,6 +15,8 @@ public class BookListItemDto extends BaseDto {
 
     private String publisher;
 
+    private Integer numberOfCopies;
+
     private Boolean availableOffline;
 
     private Boolean availableOnline;
